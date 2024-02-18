@@ -18,3 +18,4 @@ Finally, multiple experiments are run (both positive and negative) -- simulating
 The main results presented in the paper are extracted in:
 - src/adult/overall.py and src/adult/overall.ipynb: for the results concerning the global drift detection
 - src/adult/ranking.py and src/adult/ranking.ipynb: for the results on the ranking of the subgroups (based on the ground truth injections)
+- src/adult/qualitative.ipynb: for the qualitative results
