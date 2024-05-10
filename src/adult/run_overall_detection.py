@@ -43,6 +43,28 @@ def compute_store_overall_stats(
     # Initialize the detectors
     detectors_dict, overall_detectors_args = init_detectors(overall_detectors_args)
 
+    # Avoid recomputing if all the results are already available
+    exist_all = True
+    for detector_name in detectors_dict:
+        basename_detector = detector_name.split("_")[0]
+        config_detector = (
+            detector_name.split("_")[1] if len(detector_name.split("_")) > 1 else "def"
+        )
+        output_filename = os.path.join(
+            base_output_dir,
+            config_experiment,
+            basename_detector,
+            config_detector,
+            f"overalldrift-{subgroup_config_name}.pkl",
+        )
+        if os.path.exists(output_filename) == False:
+            # At least one does not exist
+            exist_all = False
+            break
+    if exist_all == True:
+        # If all are are available, return. We do not recomputed it again
+        return
+
     # Initialize dictionaries to store the results
     detector_warnings = {detector_name: {} for detector_name in detectors_dict}
     detector_detected = {detector_name: {} for detector_name in detectors_dict}
