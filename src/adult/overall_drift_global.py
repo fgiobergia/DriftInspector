@@ -3,6 +3,8 @@ from skmultiflow.drift_detection.hddm_a import HDDM_A
 from skmultiflow.drift_detection.eddm import EDDM
 from skmultiflow.drift_detection import DDM
 from skmultiflow.drift_detection.adwin import ADWIN
+from skmultiflow.drift_detection import KSWIN
+from skmultiflow.drift_detection import PageHinkley
 
 
 def read_experiment(tgt):
@@ -58,6 +60,8 @@ def init_detectors(overall_detectors_args=None):
             "eddm": None,
             "chi2": 0.05,  # pvalue
             "fet": 0.05,  # pvalue
+            "kswin_window_size": [500, 1000, 2000, 4000, 8000],
+            "pagehinkley_min_num_instances": [500, 1000, 2000, 4000, 8000],
         }
 
     # Initialize drift detectors
@@ -75,6 +79,19 @@ def init_detectors(overall_detectors_args=None):
         for adwin_params in overall_detectors_args["adwin_delta"]:
             adwin_i = ADWIN(adwin_params)
             detectors_dict[f"adwin_{adwin_params}"] = adwin_i
+
+    if "kswin_window_size" in overall_detectors_args:
+        for kswin_window in overall_detectors_args["kswin_window_size"]:
+            # We leave the alpha as default (0.005)
+            kswin_i = KSWIN(window_size=kswin_window, stat_size=int(kswin_window / 3))
+            detectors_dict[f"kswin_{kswin_window}"] = kswin_i
+
+    if "pagehinkley_min_num_instances" in overall_detectors_args:
+        for pagehinkley_params in overall_detectors_args[
+            "pagehinkley_min_num_instances"
+        ]:
+            pagehinkley_i = PageHinkley(min_instances=pagehinkley_params)
+            detectors_dict[f"pagehinkley_{pagehinkley_params}"] = pagehinkley_i
 
     if "eddm" in overall_detectors_args:
         eddm = EDDM()
