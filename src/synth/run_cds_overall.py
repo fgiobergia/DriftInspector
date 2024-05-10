@@ -50,6 +50,7 @@ def train_and_drift_overall(
     from skmultiflow.drift_detection import DDM
     from skmultiflow.drift_detection.adwin import ADWIN
     from alibi_detect.cd import ChiSquareDrift, FETDrift
+    from skmultiflow.drift_detection import KSWIN
 
     if overall_detectors_args == {}:
         # Set default values for the drift detectors
@@ -60,6 +61,7 @@ def train_and_drift_overall(
             "eddm": None,
             "chi2": 0.05,  # pvalue
             "fet": 0.05,  # pvalue
+            "kswin_window_size": [10, 50, 100, batch_size],
         }
 
     tot_samples = n_batches * batch_size  # total number of samples
@@ -103,6 +105,12 @@ def train_and_drift_overall(
         for adwin_params in overall_detectors_args["adwin_delta"]:
             adwin_i = ADWIN(adwin_params)
             detectors_dict[f"adwin_{adwin_params}"] = adwin_i
+
+    if "kswin_window_size" in overall_detectors_args:
+        for kswin_window in overall_detectors_args["kswin_window_size"]:
+            # We leave the alpha as default (0.005)
+            kswin_i = KSWIN(window_size=kswin_window, stat_size=int(kswin_window / 3))
+            detectors_dict[f"kswin_{kswin_window}"] = kswin_i
 
     if "eddm" in overall_detectors_args:
         eddm = EDDM()
@@ -251,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_dir_name",
         help="Directory where the results are stored",
-        default="results/results-overall-drift-datasets-batch",
+        default="results/results-overall-drift-datasets-noise",
         required=False,
         type=str,
     )
@@ -263,8 +271,9 @@ if __name__ == "__main__":
     train_size = args.train_size
     n_batches = args.n_batches
     batch_size = args.batch_size
-    noise = args.noise
-    output_dir_name = f"{args.output_dir_name}-noise-{noise}"
+    # noise = args.noise
+    # output_dir_name = f"{args.output_dir_name}-noise-{noise}"
+    output_dir_name = f"{args.output_dir_name}-noise-def"
 
     print("Output directory: ", output_dir_name)
     print("Experiment type: ", exp_type)
@@ -274,20 +283,20 @@ if __name__ == "__main__":
 
     if exp_type == "agrawal":
         DataClass = AgrawalWrapper
-        data_kwargs = {"perturbation": noise}
+        data_kwargs = {"perturbation": 0.7}  # noise}
     elif exp_type == "sea":
         DataClass = SEAWrapper
-        data_kwargs = {"noise_percentage": noise}
+        data_kwargs = {"noise_percentage": 0.7}  # noise}
     elif exp_type == "led":
         DataClass = LEDWrapper
-        data_kwargs = {"noise_percentage": noise}
+        data_kwargs = {"noise_percentage": 0.7}  # noise}
     elif exp_type == "stagger":
         DataClass = STAGGERWrapper
         data_kwargs = {}
     elif exp_type == "hyper":
         DataClass = HyperplaneWrapper
-        data_kwargs = {"noise_percentage": noise}
-    else:
+        data_kwargs = {"noise_percentage": 0.1}  # noise}
+
         raise ValueError(f"Unknown experiment type: {exp_type}")
 
     i = 0
