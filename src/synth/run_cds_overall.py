@@ -51,6 +51,7 @@ def train_and_drift_overall(
     from skmultiflow.drift_detection.adwin import ADWIN
     from alibi_detect.cd import ChiSquareDrift, FETDrift
     from skmultiflow.drift_detection import KSWIN
+    from skmultiflow.drift_detection import PageHinkley
 
     if overall_detectors_args == {}:
         # Set default values for the drift detectors
@@ -62,6 +63,7 @@ def train_and_drift_overall(
             "chi2": 0.05,  # pvalue
             "fet": 0.05,  # pvalue
             "kswin_window_size": [10, 50, 100, batch_size],
+            "pagehinkley_min_num_instances": [5, 10, 30, 50, 100, batch_size],
         }
 
     tot_samples = n_batches * batch_size  # total number of samples
@@ -111,6 +113,13 @@ def train_and_drift_overall(
             # We leave the alpha as default (0.005)
             kswin_i = KSWIN(window_size=kswin_window, stat_size=int(kswin_window / 3))
             detectors_dict[f"kswin_{kswin_window}"] = kswin_i
+
+    if "pagehinkley_min_num_instances" in overall_detectors_args:
+        for pagehinkley_params in overall_detectors_args[
+            "pagehinkley_min_num_instances"
+        ]:
+            pagehinkley_i = DDM(min_num_instances=pagehinkley_params)
+            detectors_dict[f"pagehinkley_{pagehinkley_params}"] = pagehinkley_i
 
     if "eddm" in overall_detectors_args:
         eddm = EDDM()
@@ -259,7 +268,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_dir_name",
         help="Directory where the results are stored",
-        default="results/results-overall-drift-datasets-noise",
+        default="results/results-overall-drift-datasets",
         required=False,
         type=str,
     )
