@@ -118,7 +118,7 @@ def train_and_drift_overall(
         for pagehinkley_params in overall_detectors_args[
             "pagehinkley_min_num_instances"
         ]:
-            pagehinkley_i = DDM(min_num_instances=pagehinkley_params)
+            pagehinkley_i = PageHinkley(min_instances=pagehinkley_params)
             detectors_dict[f"pagehinkley_{pagehinkley_params}"] = pagehinkley_i
 
     if "eddm" in overall_detectors_args:
