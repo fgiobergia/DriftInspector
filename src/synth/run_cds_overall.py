@@ -56,14 +56,14 @@ def train_and_drift_overall_start_end(
     if overall_detectors_args == {}:
         # Set default values for the drift detectors
         overall_detectors_args = {
-            "hddma_drift_confidence": [0.0001],  # , 0.0002, 0.001, 0.002, 0.01, 0.02],
-            "ddm_min_num_instances": [30],  # [5, 10, 30, 50, 100, batch_size],
-            "adwin_delta": [0.0001],  # 0.0002, 0.001, 0.002, 0.01, 0.02],
+            "hddma_drift_confidence": [0.0001, 0.0002, 0.001, 0.002, 0.01, 0.02],
+            "ddm_min_num_instances": [5, 10, 30, 50, 100, batch_size],
+            "adwin_delta": [0.0001, 0.0002, 0.001, 0.002, 0.01, 0.02],
             "eddm": None,
             "chi2": 0.05,  # pvalue
             "fet": 0.05,  # pvalue
-            "kswin_window_size": [30],  # [10, 50, 100, batch_size],
-            "pagehinkley_min_num_instances": [30],  # [5, 10, 30, 50, 100, batch_size],
+            "kswin_window_size": [5, 10, 30, 50, 100, batch_size],
+            "pagehinkley_min_num_instances": [5, 10, 30, 50, 100, batch_size],
         }
 
     tot_samples = n_batches * batch_size  # total number of samples
@@ -159,7 +159,7 @@ def train_and_drift_overall_start_end(
     detector_detected = {detector_name: {} for detector_name in detectors_dict}
     overall_drift_result = {detector_name: {} for detector_name in detectors_dict}
 
-    for batch_idx in range(0, tot_samples, batch_size):
+    for batch_idx in range(n_batches):
         X_batch, y_batch = cds.next_sample(batch_size)
 
         y_pred = clf.predict(X_batch)
@@ -191,7 +191,7 @@ def train_and_drift_overall_start_end(
                             # Add detected change to the dictionary
                             # We say that it detect a drift for all samples in the batch
                             detector_detected[detector_name][batch_idx] = [
-                                1 for i in range(len(errors_b))
+                                1 for i in range(batch_size)
                             ]
 
         # For the other approaches, we iterate one sample at the time
@@ -499,9 +499,8 @@ if __name__ == "__main__":
     train_size = args.train_size
     n_batches = args.n_batches
     batch_size = args.batch_size
-    # noise = args.noise
-    # output_dir_name = f"{args.output_dir_name}-noise-{noise}"
-    output_dir_name = f"{args.output_dir_name}-noise-0.2-NEW"
+    noise = args.noise
+    output_dir_name = f"{args.output_dir_name}-noise-{noise}"
 
     print("Output directory: ", output_dir_name)
     print("Experiment type: ", exp_type)
@@ -511,19 +510,19 @@ if __name__ == "__main__":
 
     if exp_type == "agrawal":
         DataClass = AgrawalWrapper
-        data_kwargs = {"perturbation": 0.2}  # noise}
+        data_kwargs = {"perturbation": noise}
     elif exp_type == "sea":
         DataClass = SEAWrapper
-        data_kwargs = {"noise_percentage": 0.2}  # noise}
+        data_kwargs = {"noise_percentage": noise}
     elif exp_type == "led":
         DataClass = LEDWrapper
-        data_kwargs = {"noise_percentage": 0.2}  # noise}
+        data_kwargs = {"noise_percentage": noise}
     elif exp_type == "stagger":
         DataClass = STAGGERWrapper
         data_kwargs = {}
     elif exp_type == "hyper":
         DataClass = HyperplaneWrapper
-        data_kwargs = {"noise_percentage": 0.01}  # noise}
+        data_kwargs = {"noise_percentage": noise / 20}
     else:
         raise ValueError(f"Unknown experiment type: {exp_type}")
 
@@ -563,10 +562,23 @@ if __name__ == "__main__":
         pickle.dump(overall_drift_results, f)
 
 
-# 0.2 vs 0.05
-# 0.1 vs 0.025
-# python run_cds_overall.py --exp_type agrawal
-# python run_cds_overall.py --exp_type sea
-# python run_cds_overall.py --exp_type led
-# python run_cds_overall.py --exp_type hyper
-# python run_cds_overall.py --exp_type stagger
+"""
+
+0.2 vs 0.05
+0.1 vs 0.025
+python run_cds_overall.py --exp_type agrawal
+python run_cds_overall.py --exp_type sea
+python run_cds_overall.py --exp_type led
+python run_cds_overall.py --exp_type hyper
+python run_cds_overall.py --exp_type stagger
+
+for noise in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
+do
+    echo 
+    python run_cds_overall.py --exp_type agrawal --noise $noise
+    python run_cds_overall.py --exp_type sea --noise $noise
+    python run_cds_overall.py --exp_type led --noise $noise
+    python run_cds_overall.py --exp_type hyper --noise $noise
+    python run_cds_overall.py --exp_type stagger --noise $noise
+done
+"""
