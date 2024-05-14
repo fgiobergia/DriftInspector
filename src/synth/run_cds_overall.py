@@ -62,7 +62,7 @@ def train_and_drift_overall_start_end(
             "eddm": None,
             "chi2": 0.05,  # pvalue
             "fet": 0.05,  # pvalue
-            "kswin_window_size": [5, 10, 30, 50, 100, batch_size],
+            "kswin_window_size": [50, 100, batch_size, 300, 400, 500, 600, 700, 800],
             "pagehinkley_min_num_instances": [5, 10, 30, 50, 100, batch_size],
         }
 
