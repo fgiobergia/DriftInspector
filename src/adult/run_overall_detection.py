@@ -81,19 +81,25 @@ def compute_store_overall_stats(
         if batch_idx == 0:
             # We initialize chi and fet for the entire batch
             # overall_detectors_args['chi2'] and overall_detectors_args['fet']  is the p-value threshold for the chi-square test
-            if "chi2" in detectors_dict:
-                from alibi_detect.cd import ChiSquareDrift
+            for detector_name, detector in detectors_dict.items():
+                if detector_name[0:4] == "chi2" or detector_name[0:3] == "fet":
+                    if type(detector) == float:
+                        from alibi_detect.cd import ChiSquareDrift
 
-                chi = ChiSquareDrift(errors_b, overall_detectors_args["chi2"])
-                detectors_dict["chi2"] = chi
-            if "fet" in detectors_dict:
-                from alibi_detect.cd import FETDrift
+                        # We initialize chi and fet for the entire batch
+                        if detector_name[0:4] == "chi2":
+                            parameter = float(detector_name[4:].split("_")[1])
+                            chi = ChiSquareDrift(errors_b, parameter)
+                            detectors_dict[detector_name] = chi
+                        if detector_name[0:3] == "fet":
+                            from alibi_detect.cd import FETDrift
 
-                fet = FETDrift(errors_b, overall_detectors_args["fet"])
-                detectors_dict["fet"] = fet
+                            parameter = float(detector_name[3:].split("_")[1])
+                            fet = FETDrift(errors_b, parameter)
+                            detectors_dict[detector_name] = fet
         else:
             for detector_name, detector in detectors_dict.items():
-                if detector_name == "chi2" or detector_name == "fet":
+                if detector_name[0:4] == "chi2" or detector_name[0:3] == "fet":
                     # We evaluate chi or fet for the entire batch
                     preds = detectors_dict[detector_name].predict(errors_b)
                     is_drift = preds["data"]["is_drift"]
@@ -107,7 +113,7 @@ def compute_store_overall_stats(
         # For the other approaches, we iterate one sample at the time
         for i in range(len(errors_b)):
             for detector_name, detector in detectors_dict.items():
-                if detector_name == "chi2" or detector_name == "fet":
+                if detector_name[0:4] == "chi2" or detector_name[0:3] == "fet":
                     # We skip chi2 and fet has we do the evaluation for the entire batch
                     continue
                 elif detector_name[0:5] == "adwin":
@@ -218,7 +224,12 @@ if __name__ == "__main__":
 
     from tqdm import tqdm
 
-    overall_detectors_args = {}  # Use default ones
+    # overall_detectors_args = {}  # Use default ones
+
+    overall_detectors_args = {
+        "chi2": [0.001, 0.01, 0.25, 0.05],  # pvalue
+        "fet": [0.001, 0.01, 0.25, 0.05],  # pvalue
+    }
 
     print("Positive")
     for tgt_idx, tgt in enumerate(tqdm(pos)):
