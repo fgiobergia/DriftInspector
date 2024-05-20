@@ -64,6 +64,7 @@ def train_and_drift_overall_start_end(
             "chi2": [0.001, 0.01, 0.25, 0.05],  # pvalue
             "fet": [0.001, 0.01, 0.25, 0.05],  # pvalue
             "kswin_window_size": [50, 100, batch_size, 300, 400, 500, 600, 700, 800],
+            "kswin_alpha": 0.0001,
             "pagehinkley_min_num_instances": [5, 10, 30, 50, 100, batch_size],
         }
 
@@ -114,8 +115,9 @@ def train_and_drift_overall_start_end(
         for kswin_window in overall_detectors_args["kswin_window_size"]:
             # We leave the alpha as default (0.005)
             # kswin_i = KSWIN(window_size=kswin_window, stat_size=int(kswin_window / 3))
-            kswin_i = KSWIN(window_size=kswin_window, stat_size=30)
-            detectors_dict[f"kswin_{kswin_window}"] = kswin_i
+            alpha = overall_detectors_args["kswin_alpha"]
+            kswin_i = KSWIN(window_size=kswin_window, stat_size=30, alpha=alpha)
+            detectors_dict[f"kswin_{kswin_window}_{alpha}"] = kswin_i
 
     if "pagehinkley_min_num_instances" in overall_detectors_args:
         for pagehinkley_params in overall_detectors_args[
