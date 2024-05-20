@@ -185,7 +185,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Compute dataset statistics")
 
     parser.add_argument(
-        "--dataset", help="Dataset to use", default="celeba", required=False, type=str
+        "--dataset", help="Dataset to use", default="adult", required=False, type=str
     )
 
     parser.add_argument(
@@ -224,12 +224,12 @@ if __name__ == "__main__":
 
     from tqdm import tqdm
 
-    # overall_detectors_args = {}  # Use default ones
+    overall_detectors_args = {}  # Use default ones
 
-    overall_detectors_args = {
-        "chi2": [0.001, 0.01, 0.25, 0.05],  # pvalue
-        "fet": [0.001, 0.01, 0.25, 0.05],  # pvalue
-    }
+    # overall_detectors_args = {
+    #    "chi2": [0.001, 0.01, 0.25, 0.05],  # pvalue
+    #    "fet": [0.001, 0.01, 0.25, 0.05],  # pvalue
+    # }
 
     print("Positive")
     for tgt_idx, tgt in enumerate(tqdm(pos)):
