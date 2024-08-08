@@ -1,4 +1,4 @@
-Repository for the *Detecting Interpretable Subgroup Drifts* paper, currently under submission at KDD 2024. 
+Repository for the *Detecting Interpretable Subgroup Drifts* paper, currently under submission at KDD 2025. 
 
 Note: the "build a classification model" steps are separate for adult and CelebA (since they use different models). The processing of the results is the same for both datasets (and is found in the src/adult folder for the time being -- some restructuring will occur later on!)
 
